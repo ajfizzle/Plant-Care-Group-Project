@@ -6,6 +6,9 @@ dotenv.config();
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: "build", // Ensure this matches the directory expected by the server
+  },
   server: {
     port: 3000,
     open: true,

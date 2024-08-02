@@ -4,16 +4,13 @@
   "description": "",
   "main": "server/server.js",
   "scripts": {
-    "start:dev": "concurrently \"npm run server\" \"npm run client\"",
     "start": "node server/server.js",
-    "server": "nodemon server/server.js",
-    "build": "npm run build:client",
-    "build:client": "cd client && npm install && npm run build",
-    "install": "npm run install:server && npm run install:client",
-    "install:server": "cd server && npm install",
-    "install:client": "cd client && npm install",
-    "client": "cd client && npm start",
-    "prestart": "npm run build:client"
+    "develop": "concurrently \"cd server && npm run watch\" \"cd client && npm start\"",
+    "install": "npm run install-server && npm run install-client",
+    "build": "cd client && npm run build",
+    "render-build": "npm install && npm run build",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install"
   },
   "keywords": [],
   "author": "",

@@ -5,61 +5,61 @@ const path = require("path");
 const mongoose = require("mongoose");
 const { typeDefs, resolvers } = require("./schemas");
 const { authMiddleware } = require("./utils/auth");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripeRoutes = require("./routes/stripe");
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// MongoDB connection with options for compatibility
 mongoose
   .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/plantDB", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
-    console.log("MongoDB connected successfully");
-  })
-  .catch((err) => {
-    console.error("Error connecting to MongoDB:", err);
-  });
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch((err) => console.error("Error connecting to MongoDB:", err));
 
+// Middleware for parsing requests
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.post("/api/stripe/create-payment-intent", async (req, res) => {
-  try {
-    const { amount } = req.body;
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency: "usd",
-    });
-    res.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Stripe routes for payment handling
+app.use("/api/stripe", stripeRoutes);
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
-
-async function startServer() {
+// Apollo Server Setup
+async function startApolloServer() {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
     context: ({ req }) => authMiddleware({ req }),
+    introspection: true, // Enable introspection for GraphQL tools
+    csrfPrevention: true, // CSRF protection
+    cache: "bounded", // Optimized caching
   });
+
   await server.start();
   server.applyMiddleware({ app });
+
+  // Serve static files in production
   if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../client/dist")));
+    app.use(express.static(path.join(__dirname, "../client/build")));
   }
+
+  // Catch-all route to serve React app
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/build/index.html"));
+  });
+
+  // Start listening
   app.listen(PORT, () => {
     console.log(`API server running on port ${PORT}`);
-    console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`);
+    console.log(
+      `GraphQL available at http://localhost:${PORT}${server.graphqlPath}`
+    );
   });
 }
-startServer().catch((err) => {
-  console.error("Error starting server:", err);
-});
+
+// Start the server with error handling
+startApolloServer().catch((err) =>
+  console.error("Error starting server:", err)
+);

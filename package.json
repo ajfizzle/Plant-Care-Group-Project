@@ -1,0 +1,30 @@
+{
+  "name": "plant-care-group-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/server.js",
+  "scripts": {
+    "start:dev": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "node server/server.js",
+    "server": "nodemon server/server.js",
+    "build": "npm run build:client",
+    "build:client": "cd client && npm install && npm run build",
+    "install": "npm run install:server && npm run install:client",
+    "install:server": "cd server && npm install",
+    "install:client": "cd client && npm install",
+    "client": "cd client && npm start",
+    "prestart": "npm run build:client"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^5.1.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.8.0"
+  }
+}
